@@ -1,10 +1,3 @@
-# argdeclare
-
-Declarative methods to use to argparse
-
-## Declarative Format Example
-
-```python
 #!/usr/bin/env python3
 
 from argdeclare import Commander, option, option_group
@@ -128,59 +121,3 @@ class Application(Commander):
 if __name__ == '__main__':
     app = Application()
     app.cmdline()
-```
-
-`with levels=0` gives:
-
-
-```text
-$ python3 demo.py
-usage: demo.py [-h] [-v]  ...
-
-builder: builds the py-js max external and python from source.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -v, --version         show program's version number and exit
-
-subcommands:
-  valid subcommands
-
-                        additional help
-    check_log_day       analyze log day
-    check_log_week      analyze log week
-    check_sys_def       analyze sys def
-    check_sys_month     analyze sys month
-    check_sys_xyz       analyze sys xyz
-    python_framework    build framework python
-    python_framework_pkg
-                        build framework python to embed in a package
-    python_shared       build shared python
-    python_shared_pkg   build shared python to embed in package
-    python_static       build static python
-    test                test suite
-    test_app            test app
-    test_functions      test functions
-```
-
-`with levels=1` gives:
-
-```text
-
-$ python3 demo.py
-usage: demo.py [-h] [-v]  ...
-
-builder: builds the py-js max external and python from source.
-
-optional arguments:
-  -h, --help     show this help message and exit
-  -v, --version  show program's version number and exit
-
-subcommands:
-  valid subcommands
-
-                 additional help
-    check        check commands
-    python       python commands
-    test         test suite
-```
