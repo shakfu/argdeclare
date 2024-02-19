@@ -1,6 +1,6 @@
 # argdeclare
 
-Declarative methods to use to argparse
+Declarative methods to use with argparse
 
 ## Declarative Format Example
 
@@ -14,21 +14,17 @@ from argdeclare import Commander, option, option_group
 
 common_options = option_group(
     option("--dump", action="store_true", help="dump project and product vars"),
-    option("-d",
-           "--download",
+    option("-d","--download",
            action="store_true",
            help="download python build/downloads"),
     option("-r", "--reset", action="store_true", help="reset python build"),
-    option("-i",
-           "--install",
+    option("-i","--install",
            action="store_true",
            help="install python to build/lib"),
-    option("-b",
-           "--build",
+    option("-b","--build",
            action="store_true",
            help="build python in build/src"),
-    option("-c",
-           "--clean",
+    option("-c","--clean",
            action="store_true",
            help="clean python in build/src"),
     option("-z", "--ziplib", action="store_true", help="zip python library"),

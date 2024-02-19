@@ -35,7 +35,7 @@ class Application(Commander):
     epilog = ''
     version = '0.1'
     default_args = ['--help']
-    _argparse_levels = 1
+    _argparse_levels = 2
 
 
 # ----------------------------------------------------------------------------
