@@ -123,8 +123,10 @@ def option_group(*options: Callable[[Callable], Callable]) -> Callable[[Callable
 class MetaCommander(type):
     """Metaclass to provide argparse boilerplate features to its instance class.
 
-    Automatically discovers methods starting with 'do_' and registers them as
-    subcommands. Captures any options added via the @option decorator.
+    Automatically discovers methods starting with the command prefix (default 'do_')
+    and registers them as subcommands. Captures any options added via the @option decorator.
+
+    The command prefix can be customized by setting the _command_prefix class attribute.
     """
 
     def __new__(
@@ -133,10 +135,18 @@ class MetaCommander(type):
         bases: Tuple[type, ...],
         classdict: Dict[str, Any]
     ) -> type:
+        # Get command prefix from class dict or default to 'do_'
+        command_prefix = classdict.get('_command_prefix', 'do_')
+        prefix_len = len(command_prefix)
+
         subcmds: Dict[str, Dict[str, Any]] = {}
         for name, func in list(classdict.items()):
-            if name.startswith("do_"):
-                cmd_name = name[3:]
+            # Only process callable methods that start with the command prefix
+            # Skip special Python attributes (dunder methods) and non-callables
+            if (name.startswith(command_prefix) and
+                callable(func) and
+                not (name.startswith('__') and name.endswith('__'))):
+                cmd_name = name[prefix_len:]
 
                 # Validate command name
                 if not cmd_name:
@@ -171,21 +181,37 @@ class MetaCommander(type):
 class Commander(metaclass=MetaCommander):
     """Base class for creating command-line applications with declarative syntax.
 
-    Subclass this and define methods starting with 'do_' to create subcommands.
-    Use the @option decorator to add command-line options to your commands.
+    Subclass this and define methods starting with the command prefix (default 'do_')
+    to create subcommands. Use the @option decorator to add command-line options
+    to your commands.
 
     Attributes:
         name: Application name (defaults to "app name")
         epilog: Text to display after help (defaults to "")
         version: Application version (defaults to "0.1")
         default_args: Arguments to use when none provided (defaults to ["--help"])
+        _command_prefix: Prefix for command methods (defaults to "do_")
         _argparse_levels: Number of hierarchy levels for subcommands (0 = flat, 1+ = hierarchical)
+
+    Example:
+        # Using default 'do_' prefix
+        class MyApp(Commander):
+            def do_build(self, args):
+                pass
+
+        # Using custom prefix
+        class MyApp(Commander):
+            _command_prefix = "cmd_"
+
+            def cmd_build(self, args):
+                pass
     """
 
     name: str = "app name"
     epilog: str = ""
     version: str = "0.1"
     default_args: List[str] = ["--help"]
+    _command_prefix: str = "do_"  # Prefix for command methods
     _argparse_subcmds: Dict[str, Dict[str, Any]]  # Populated by metaclass with discovered commands
     _argparse_levels: int = 0  # 0 = flat commands, 1+ = hierarchical based on underscores
 

@@ -440,6 +440,97 @@ class TestEnsureParentParser:
         assert "test" in app._argparse_structure
 
 
+class TestCustomPrefix:
+    """Test custom command prefix functionality."""
+
+    def test_custom_prefix_discovery(self):
+        """Metaclass should discover commands with custom prefix."""
+        class TestApp(Commander):
+            _command_prefix = "cmd_"
+
+            def cmd_build(self, args):
+                """build the project"""
+                pass
+
+            def cmd_test(self, args):
+                """run tests"""
+                pass
+
+            def do_ignored(self, args):
+                """should be ignored"""
+                pass
+
+        assert "build" in TestApp._argparse_subcmds
+        assert "test" in TestApp._argparse_subcmds
+        assert "ignored" not in TestApp._argparse_subcmds
+
+    def test_custom_prefix_execution(self):
+        """Commands with custom prefix should execute correctly."""
+        executed = []
+
+        class TestApp(Commander):
+            _command_prefix = "command_"
+            _argparse_levels = 0
+
+            @option("-v", "--verbose", action="store_true")
+            def command_build(self, args):
+                """build the project"""
+                executed.append(("build", args.verbose))
+
+        app = TestApp()
+        sys.argv = ["test", "build", "-v"]
+        app.cmdline()
+
+        assert len(executed) == 1
+        assert executed[0] == ("build", True)
+
+    def test_custom_prefix_hierarchical(self):
+        """Custom prefix should work with hierarchical commands."""
+        executed = []
+
+        class TestApp(Commander):
+            _command_prefix = "cmd_"
+            _argparse_levels = 1
+
+            def cmd_python_build(self, args):
+                """build python"""
+                executed.append("python_build")
+
+        app = TestApp()
+        sys.argv = ["test", "python", "build"]
+        app.cmdline()
+
+        assert "python_build" in executed
+
+    def test_empty_prefix(self):
+        """Empty prefix should discover all methods (not recommended but should work)."""
+        class TestApp(Commander):
+            _command_prefix = ""
+
+            def build(self, args):
+                """build command"""
+                pass
+
+        # Should discover 'build' method
+        assert "build" in TestApp._argparse_subcmds
+
+    def test_underscore_prefix(self):
+        """Underscore prefix should work."""
+        class TestApp(Commander):
+            _command_prefix = "_"
+
+            def _build(self, args):
+                """build command"""
+                pass
+
+            def __init_subclass__(cls):
+                """Should not be discovered as command"""
+                pass
+
+        assert "build" in TestApp._argparse_subcmds
+        assert "_init_subclass__" not in TestApp._argparse_subcmds
+
+
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
