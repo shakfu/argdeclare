@@ -1,6 +1,55 @@
 # argdeclare
 
-Declarative methods to use with argparse
+A declarative interface to Python's argparse for building hierarchical CLI applications.
+
+[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+## Features
+
+- **Declarative syntax** - Define commands with decorators and methods
+- **Hierarchical commands** - Build nested command structures (e.g., `git remote add`)
+- **Option decorators** - Add argparse options with `@option` decorator
+- **Option groups** - Reuse common options across commands with `@option_group`
+- **Customizable** - Configure command prefix, hierarchy levels, and more
+- **Production ready** - Comprehensive test suite, type hints, error handling
+- **Well documented** - Docstrings, examples, and guides
+
+## Installation
+
+```bash
+# Coming soon to PyPI
+pip install argdeclare
+
+# For now, use directly from source
+git clone https://github.com/yourusername/argdeclare.git
+cd argdeclare
+```
+
+## Quick Start
+
+```python
+from argdeclare import Commander, option
+
+class MyApp(Commander):
+    """My awesome CLI application."""
+    name = 'myapp'
+    version = '1.0'
+
+    @option("-v", "--verbose", action="store_true", help="verbose output")
+    def do_build(self, args):
+        """Build the project."""
+        print(f"Building... (verbose={args.verbose})")
+
+if __name__ == '__main__':
+    app = MyApp()
+    app.cmdline()
+```
+
+```bash
+$ python myapp.py build --verbose
+Building... (verbose=True)
+```
 
 ## Declarative Format Example
 
@@ -179,4 +228,93 @@ subcommands:
     check        check commands
     python       python commands
     test         test suite
+```
+
+## Advanced Features
+
+### Custom Command Prefix
+
+By default, methods starting with `do_` become commands. You can customize this:
+
+```python
+class MyApp(Commander):
+    _command_prefix = "cmd_"  # Use 'cmd_' instead of 'do_'
+
+    def cmd_build(self, args):
+        """Build the project."""
+        pass
+
+    def cmd_deploy(self, args):
+        """Deploy the project."""
+        pass
+```
+
+See `example_custom_prefix.py` for more examples.
+
+### Error Handling
+
+Version 0.2.0+ includes comprehensive error handling:
+
+```python
+from argdeclare import ArgDeclareError, CommandExecutionError
+
+try:
+    app.cmdline()
+except CommandExecutionError as e:
+    print(f"Command failed: {e}")
+except ArgDeclareError as e:
+    print(f"Configuration error: {e}")
+```
+
+## Documentation
+
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and migration guides
+- **[CODE_REVIEW.md](CODE_REVIEW.md)** - Comprehensive code review and analysis
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Implementation details
+- **Examples:** (in the `examples` directory)
+  - `basic.py` - basic example application
+  - `hierarchical.py` - Full-featured example application
+  - `custom_prefix.py` - Custom prefix demonstrations
+
+## Development
+
+### Running Tests
+
+```bash
+make test           # Run test suite (38 tests)
+make coverage       # Run with coverage report
+make lint           # Run ruff linter
+make typecheck      # Run mypy type checker
+make all            # Run all checks
+```
+
+### Requirements
+
+- Python 3.7+
+- No external dependencies (uses stdlib only)
+- Development: pytest, ruff, mypy (optional)
+
+## Version History
+
+- **v0.2.0** (2025-11-07) - Production-ready release with tests, type hints, error handling, and configurable prefix
+- **v0.1.0** - Initial release with basic functionality
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
+
+## License
+
+MIT License - See [LICENSE](LICENSE) file for details.
+
+## Credits
+
+Based on the original [argdeclare recipe](http://code.activestate.com/recipes/576935-argdeclare-declarative-interface-to-argparse) from ActiveState.
+
+## Contributing
+
+Contributions welcome! Please:
+1. Run tests: `make test`
+2. Check types: `make typecheck`
+3. Lint code: `make lint`
+4. Add tests for new features
+
 ```
