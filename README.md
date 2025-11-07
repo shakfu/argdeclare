@@ -266,15 +266,13 @@ except ArgDeclareError as e:
     print(f"Configuration error: {e}")
 ```
 
-## Documentation
+## Examples
 
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history and migration guides
-- **[CODE_REVIEW.md](CODE_REVIEW.md)** - Comprehensive code review and analysis
-- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Implementation details
-- **Examples:** (in the `examples` directory)
-  - `basic.py` - basic example application
-  - `hierarchical.py` - Full-featured example application
-  - `custom_prefix.py` - Custom prefix demonstrations
+Can be found in the `examples` directory:
+
+- `basic.py` - Basic example application
+- `hierarchical.py` - Full-featured example application
+- `custom_prefix.py` - Custom prefix demonstrations
 
 ## Development
 
