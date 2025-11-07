@@ -6,28 +6,6 @@ by applications wishing to provide a basic commandline interface.
 This is based on my old `argdeclare` code
     see: http://code.activestate.com/recipes/576935-argdeclare-declarative-interface-to-argparse
 
-
-TODO:
------
-
-- make fully recursive! 
-
-like haskell:
-
-    sum :: (Num a) => [a] -> a  
-    sum [] = 0  
-    sum (x:xs) = x + sum' xs  
-
-concept is
-
-    parse [] = 0
-    parse (x:xs) = 
-        if x in structure:
-            structure[x] = options[x]
-        else:
-            structure[x] = dummy[x]
-        structure[x].children.append(xs)
-        parse(xs)
 """
 import argparse
 import sys
@@ -109,12 +87,35 @@ class Commander(metaclass=MetaCommander):
         subparser.set_defaults(func=subcmd["func"])
         return subparser
 
-    def parse_subparsers(self, subparsers, subcmd, name):
-        head, *tail = name.split("_")
+    def _ensure_parent_parser(self, subparsers, head):
+        """Ensure parent parser exists in structure, creating dummy if needed."""
+        if head not in self._argparse_structure:
+            def dummy_func(self, args):
+                pass
+            dummy_func.__doc__ = f"{head} commands"
 
-        if not tail:  # i.e head == name
-            # scenario: single section name and subcmd is given
-            subparser = self.add_parser(subparsers, subcmd)
+            dummy_subcmd = {
+                'name': head,
+                'func': dummy_func,
+                'options': [],
+            }
+            parent_parser = self.add_parser(subparsers, dummy_subcmd, name=head)
+            self._argparse_structure[head] = parent_parser.add_subparsers(
+                title=f"{head} subcommands",
+                description=dummy_func.__doc__,
+                help='additional help',
+                metavar='',
+            )
+        return self._argparse_structure[head]
+
+    def parse_subparsers(self, subparsers, subcmd, name):
+        """Recursively parse command hierarchy from underscore-separated name."""
+        head, *tail = name.split("_", 1)
+
+        # Base case: no hierarchy, just add the command
+        if not tail:
+            subparser = self.add_parser(subparsers, subcmd, name=head)
+            # Prepare for potential children by creating subparsers
             if head not in self._argparse_structure:
                 self._argparse_structure[head] = subparser.add_subparsers(
                     title=f"{head} subcommands",
@@ -122,32 +123,11 @@ class Commander(metaclass=MetaCommander):
                     help="additional help",
                     metavar="",
                 )
-        else:
-            if head in self._argparse_structure:
-                _subparsers = self._argparse_structure[head]
-                subparser = self.add_parser(_subparsers, subcmd, name="_".join(tail))
-            else:
-                # create a dummy 'head' if it wasn't created manually
-                subcmd = {
-                    'name': head,
-                    'func': lambda self, args: subparser.print_help(),
-                    'options': [],
-                }
-                subcmd['func'].__doc__ = f"{head} commands"
-                subparser = self.add_parser(subparsers, subcmd, name=head)
+            return subparser
 
-                # add it to structure
-                self._argparse_structure[head] = subparser.add_subparsers(
-                    title=f"{head} subcommands",
-                    description=subcmd['func'].__doc__,
-                    help='additional help',
-                    metavar='',
-                )
-
-                # add tail as a child to it
-                _subparsers = self._argparse_structure[head]
-                # self.parse_subparsers(_subparsers, subcmd, name="_".join(tail))
-                subparser = self.add_parser(_subparsers, subcmd, name="_".join(tail))
+        # Recursive case: ensure parent exists, then recurse on tail
+        parent_subparsers = self._ensure_parent_parser(subparsers, head)
+        return self.parse_subparsers(parent_subparsers, subcmd, tail[0])
 
 
     def cmdline(self):
